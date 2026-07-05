@@ -1,0 +1,133 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A portfolio project item created by the designer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string" },
+        "images": { "type": "array" },
+        "tools": { "type": "array" },
+        "process": { "type": "string" },
+        "clientFeedback": { "type": "string" },
+        "beforeUrl": { "type": "string" },
+        "afterUrl": { "type": "string" },
+        "featured": { "type": "boolean" },
+        "order": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "description", "category", "images"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "Global website configuration settings and content.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "designerName": { "type": "string" },
+        "profession": { "type": "string" },
+        "heroTitle": { "type": "string" },
+        "heroSubtitle": { "type": "string" },
+        "aboutText": { "type": "string" },
+        "resumeUrl": { "type": "string" },
+        "logoText": { "type": "string" },
+        "seoTitle": { "type": "string" },
+        "seoDescription": { "type": "string" },
+        "themeBg": { "type": "string" },
+        "themeAccent": { "type": "string" },
+        "contactEmail": { "type": "string" },
+        "contactPhone": { "type": "string" },
+        "socialInstagram": { "type": "string" },
+        "socialBehance": { "type": "string" },
+        "socialLinkedIn": { "type": "string" },
+        "socialWhatsApp": { "type": "string" },
+        "sectionsVisibility": { "type": "object" }
+      },
+      "required": ["id", "designerName", "profession"]
+    },
+    "Skill": {
+      "title": "Skill",
+      "description": "Designer skillset item.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "percentage": { "type": "number" },
+        "projectsCount": { "type": "number" },
+        "iconName": { "type": "string" }
+      },
+      "required": ["id", "name", "percentage"]
+    },
+    "Service": {
+      "title": "Service",
+      "description": "A design service offered with pricing detail.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "price": { "type": "string" },
+        "features": { "type": "array" }
+      },
+      "required": ["id", "name", "price"]
+    },
+    "Testimonial": {
+      "title": "Testimonial",
+      "description": "Feedback and quote from a client.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "clientName": { "type": "string" },
+        "clientRole": { "type": "string" },
+        "clientCompany": { "type": "string" },
+        "feedback": { "type": "string" },
+        "rating": { "type": "number" },
+        "avatarUrl": { "type": "string" }
+      },
+      "required": ["id", "clientName", "feedback"]
+    },
+    "ContactMessage": {
+      "title": "ContactMessage",
+      "description": "Message submitted through the contact form.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "name", "email", "message"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": { "$ref": "#/entities/Project" },
+      "description": "Collection of showcase portfolio projects."
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/Setting" },
+      "description": "Website config and dynamic content management."
+    },
+    "/skills/{skillId}": {
+      "schema": { "$ref": "#/entities/Skill" },
+      "description": "List of interactive professional skills."
+    },
+    "/services/{serviceId}": {
+      "schema": { "$ref": "#/entities/Service" },
+      "description": "Design services offered by the agency/designer."
+    },
+    "/testimonials/{testimonialId}": {
+      "schema": { "$ref": "#/entities/Testimonial" },
+      "description": "Client reviews."
+    },
+    "/contacts/{contactId}": {
+      "schema": { "$ref": "#/entities/ContactMessage" },
+      "description": "Messages sent from contact form."
+    }
+  }
+}

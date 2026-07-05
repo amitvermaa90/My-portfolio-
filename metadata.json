@@ -1,0 +1,6 @@
+{
+  "name": "Amit Verma Portfolio",
+  "description": "An elite, dark luxury graphic design portfolio and admin panel for Amit Verma.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
