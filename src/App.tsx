@@ -55,12 +55,27 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
+  // Helper to extract clean active route from path or hash
+  const getActiveRoute = () => {
+    const path = window.location.pathname.trim().toLowerCase();
+    const hash = window.location.hash.trim().toLowerCase();
+    const normalizedPath = path.endsWith('/') && path.length > 1 ? path.slice(0, -1) : path;
+    
+    if (normalizedPath === '/av-control' || hash === '#av-control' || hash === '#/av-control') {
+      return '/av-control';
+    }
+    if (normalizedPath === '/av-login' || hash === '#av-login' || hash === '#/av-login') {
+      return '/av-login';
+    }
+    return '/';
+  };
+
   // Lifted Auth States
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isSandboxMode, setIsSandboxMode] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [currentPath, setCurrentPath] = useState(getActiveRoute());
 
   // Load Data
   const loadData = async () => {
@@ -118,11 +133,13 @@ export default function App() {
   // Monitor browser back/forward and routing changes
   useEffect(() => {
     const handleLocationChange = () => {
-      setCurrentPath(window.location.pathname);
+      setCurrentPath(getActiveRoute());
     };
     window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
     return () => {
       window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
     };
   }, []);
 
@@ -155,7 +172,9 @@ export default function App() {
   useEffect(() => {
     if (authLoading) return;
 
-    if (currentPath === '/av-control') {
+    const activeRoute = getActiveRoute();
+
+    if (activeRoute === '/av-control') {
       if (!isAdminAuthenticated) {
         window.history.replaceState(null, '', '/av-login');
         setCurrentPath('/av-login');
@@ -163,7 +182,7 @@ export default function App() {
       } else {
         setAdminOpen(true);
       }
-    } else if (currentPath === '/av-login') {
+    } else if (activeRoute === '/av-login') {
       if (isAdminAuthenticated) {
         window.history.replaceState(null, '', '/av-control');
         setCurrentPath('/av-control');
