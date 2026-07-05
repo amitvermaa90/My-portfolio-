@@ -69,6 +69,14 @@ interface AdminPanelProps {
     services?: Service[];
     testimonials?: Testimonial[];
   }) => void;
+  isAdminAuthenticated: boolean;
+  setIsAdminAuthenticated: (val: boolean) => void;
+  isSandboxMode: boolean;
+  setIsSandboxMode: (val: boolean) => void;
+  userEmail: string | null;
+  setUserEmail: (val: string | null) => void;
+  currentPath: string;
+  setCurrentPath: (path: string) => void;
 }
 
 export default function AdminPanel({
@@ -80,11 +88,16 @@ export default function AdminPanel({
   onClose,
   onRefreshData,
   onTemporaryUpdate,
+  isAdminAuthenticated,
+  setIsAdminAuthenticated,
+  isSandboxMode,
+  setIsSandboxMode,
+  userEmail,
+  setUserEmail,
+  currentPath,
+  setCurrentPath,
 }: AdminPanelProps) {
   // Authentication states
-  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isSandboxMode, setIsSandboxMode] = useState(false);
   const [passphrase, setPassphrase] = useState('');
   const [authError, setAuthError] = useState('');
 
@@ -160,30 +173,33 @@ export default function AdminPanel({
     setEditedTestimonials(testimonials);
   }, [settings, projects, skills, services, testimonials]);
 
-  // Handle Authentication Changes
+  // Load message inbox on authentication
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUserEmail(user.email);
-        // Verify admin privilege
-        if (user.email === 'amtverma01@gmail.com' || user.email === 'user@example.com') {
-          setIsAdminAuthenticated(true);
-          setIsSandboxMode(false);
-          loadRealMessages();
-        } else {
-          setAuthError(`Email ${user.email} is not authorized. Switched to Sandbox Sandbox for testing.`);
-          setIsAdminAuthenticated(false);
-        }
+    if (isAdminAuthenticated) {
+      if (!isSandboxMode) {
+        loadRealMessages();
       } else {
-        setUserEmail(null);
-        if (!isSandboxMode) {
-          setIsAdminAuthenticated(false);
-        }
+        // Load mock/sandbox messages
+        setContactMessages([
+          {
+            id: '1',
+            name: 'Jane Doe',
+            email: 'jane@example.com',
+            subject: 'Custom Branding Project Proposal',
+            message: 'Loved your graphic portfolio! We would love to commission a packaging suite for our organic beverage product.',
+            createdAt: new Date().toISOString()
+          },
+          {
+            id: 'mock_2',
+            name: 'Hiroto Takahashi',
+            email: 'hiroto@tokyocine.jp',
+            message: 'The posters for CineNoir Tokyo were incredible. We received highly positive feedback. Let\'s discuss designing visual guides for our Osaka series next week.',
+            createdAt: new Date(Date.now() - 86400000).toISOString()
+          }
+        ]);
       }
-    });
-
-    return () => unsubscribe();
-  }, [isSandboxMode]);
+    }
+  }, [isAdminAuthenticated, isSandboxMode]);
 
   const loadRealMessages = async () => {
     try {

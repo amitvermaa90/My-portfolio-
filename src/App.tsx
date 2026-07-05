@@ -33,6 +33,7 @@ import { defaultData } from './data/defaultData';
 
 // Firebase Helpers
 import { 
+  auth,
   fetchSettings, 
   fetchProjects, 
   fetchSkills, 
@@ -53,6 +54,13 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  // Lifted Auth States
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [isSandboxMode, setIsSandboxMode] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   // Load Data
   const loadData = async () => {
@@ -102,22 +110,71 @@ export default function App() {
       metaDesc.setAttribute('content', settings.seoDescription || '');
     }
 
-    // Monitor url paths for direct /admin URL entry
-    const handleLocationChange = () => {
-      if (window.location.pathname === '/admin' || window.location.hash === '#admin') {
-        setAdminOpen(true);
-      } else {
-        setAdminOpen(false);
-      }
-    };
-    handleLocationChange();
-    window.addEventListener('popstate', handleLocationChange);
-
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('popstate', handleLocationChange);
     };
   }, [settings.seoTitle, settings.seoDescription]);
+
+  // Monitor browser back/forward and routing changes
+  useEffect(() => {
+    const handleLocationChange = () => {
+      setCurrentPath(window.location.pathname);
+    };
+    window.addEventListener('popstate', handleLocationChange);
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+    };
+  }, []);
+
+  // Monitor Firebase Auth State changes
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setUserEmail(user.email);
+        if (user.email === 'amtverma01@gmail.com' || user.email === 'user@example.com') {
+          setIsAdminAuthenticated(true);
+          setIsSandboxMode(false);
+        } else {
+          if (!isSandboxMode) {
+            setIsAdminAuthenticated(false);
+          }
+        }
+      } else {
+        setUserEmail(null);
+        if (!isSandboxMode) {
+          setIsAdminAuthenticated(false);
+        }
+      }
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [isSandboxMode]);
+
+  // Handle redirects and admin visual HUD display state
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (currentPath === '/av-control') {
+      if (!isAdminAuthenticated) {
+        window.history.replaceState(null, '', '/av-login');
+        setCurrentPath('/av-login');
+        setAdminOpen(true);
+      } else {
+        setAdminOpen(true);
+      }
+    } else if (currentPath === '/av-login') {
+      if (isAdminAuthenticated) {
+        window.history.replaceState(null, '', '/av-control');
+        setCurrentPath('/av-control');
+        setAdminOpen(true);
+      } else {
+        setAdminOpen(true);
+      }
+    } else {
+      setAdminOpen(false);
+    }
+  }, [authLoading, isAdminAuthenticated, currentPath]);
 
   // Support live-updating the UI state before committing to Firestore (Live Preview Mode)
   const handleTemporaryUpdate = (newData: {
@@ -134,13 +191,10 @@ export default function App() {
     if (newData.testimonials) setTestimonials(newData.testimonials);
   };
 
-  const toggleAdmin = (open: boolean) => {
-    setAdminOpen(open);
-    if (open) {
-      window.history.pushState(null, '', '/admin');
-    } else {
-      window.history.pushState(null, '', '/');
-    }
+  const handleCloseAdmin = () => {
+    window.history.pushState(null, '', '/');
+    setCurrentPath('/');
+    setAdminOpen(false);
   };
 
   return (
@@ -184,12 +238,6 @@ export default function App() {
 
           {/* Desktop Right CTAs */}
           <div className="hidden md:flex items-center gap-4">
-            <button 
-              onClick={() => toggleAdmin(true)}
-              className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-[10px] font-mono tracking-widest uppercase transition-all cursor-pointer"
-            >
-              CMS PORTAL
-            </button>
             <a 
               href="#contact" 
               className="px-5 py-2.5 bg-white text-black font-display font-bold text-[10px] tracking-widest uppercase rounded-lg hover:bg-white/90 transition-all"
@@ -228,12 +276,6 @@ export default function App() {
             </nav>
 
             <div className="pb-12 space-y-4">
-              <button 
-                onClick={() => { setMobileMenuOpen(false); toggleAdmin(true); }}
-                className="w-full py-3.5 bg-white/5 border border-white/5 rounded-xl font-mono text-[11px] tracking-widest uppercase text-center"
-              >
-                CMS PORTAL
-              </button>
               <a 
                 href="#contact" 
                 onClick={() => setMobileMenuOpen(false)}
@@ -285,7 +327,7 @@ export default function App() {
       )}
 
       {/* 13. MINIMAL MASTER FOOTER */}
-      <Footer settings={settings} onAdminClick={() => toggleAdmin(true)} />
+      <Footer settings={settings} />
 
       {/* 14. ADMIN PANEL MANAGEMENT HUD */}
       <AnimatePresence>
@@ -296,9 +338,20 @@ export default function App() {
             skills={skills}
             services={services}
             testimonials={testimonials}
-            onClose={() => toggleAdmin(false)}
+            onClose={handleCloseAdmin}
             onRefreshData={loadData}
             onTemporaryUpdate={handleTemporaryUpdate}
+            isAdminAuthenticated={isAdminAuthenticated}
+            setIsAdminAuthenticated={setIsAdminAuthenticated}
+            isSandboxMode={isSandboxMode}
+            setIsSandboxMode={setIsSandboxMode}
+            userEmail={userEmail}
+            setUserEmail={setUserEmail}
+            currentPath={currentPath}
+            setCurrentPath={(path) => {
+              window.history.pushState(null, '', path);
+              setCurrentPath(path);
+            }}
           />
         )}
       </AnimatePresence>

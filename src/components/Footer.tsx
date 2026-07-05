@@ -8,10 +8,9 @@ import { Setting } from '../types';
 
 interface FooterProps {
   settings: Setting;
-  onAdminClick: () => void;
 }
 
-export default function Footer({ settings, onAdminClick }: FooterProps) {
+export default function Footer({ settings }: FooterProps) {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -29,15 +28,6 @@ export default function Footer({ settings, onAdminClick }: FooterProps) {
 
         {/* Right Side: Back to Top and Admin lock link */}
         <div className="flex items-center gap-6">
-          {/* Subtle admin lock */}
-          <button 
-            onClick={onAdminClick}
-            className="flex items-center gap-1.5 text-[10px] font-mono tracking-widest hover:text-white transition-colors cursor-pointer uppercase"
-          >
-            <Lock className="w-3 h-3 text-white/20" />
-            Admin Entry
-          </button>
-
           {/* Smooth Scroll to Top */}
           <button
             onClick={scrollToTop}
